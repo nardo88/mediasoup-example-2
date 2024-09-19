@@ -1,27 +1,30 @@
-const os = require("os");
-const ifaces = os.networkInterfaces();
+import { MediaKind } from 'mediasoup/node/lib/RtpParameters'
+import os from 'os'
+
+const ifaces = os.networkInterfaces()
 
 const getLocalIp = () => {
-  let localIp = "127.0.0.1";
+  let localIp = '127.0.0.1'
   Object.keys(ifaces).forEach((ifname) => {
+    if (!ifaces[ifname]) return
     for (const iface of ifaces[ifname]) {
       // Ignore IPv6 and 127.0.0.1
-      if (iface.family !== "IPv4" || iface.internal !== false) {
-        continue;
+      if (iface.family !== 'IPv4' || iface.internal !== false) {
+        continue
       }
       // Set the local ip to the first IPv4 address found and exit the loop
-      localIp = iface.address;
-      return;
+      localIp = iface.address
+      return
     }
-  });
-  return localIp;
-};
+  })
+  return localIp
+}
 
-module.exports = {
-  listenIp: "0.0.0.0",
+export const config = {
+  listenIp: '0.0.0.0',
   listenPort: 3000,
-  sslCrt: "../ssl/cert.pem",
-  sslKey: "../ssl/key.pem",
+  sslCrt: '../ssl/cert.pem',
+  sslKey: '../ssl/key.pem',
 
   mediasoup: {
     // Worker settings
@@ -29,14 +32,14 @@ module.exports = {
     worker: {
       rtcMinPort: 10000,
       rtcMaxPort: 10100,
-      logLevel: "warn",
+      logLevel: 'warn',
       logTags: [
-        "info",
-        "ice",
-        "dtls",
-        "rtp",
-        "srtp",
-        "rtcp",
+        'info',
+        'ice',
+        'dtls',
+        'rtp',
+        'srtp',
+        'rtcp',
         // 'rtx',
         // 'bwe',
         // 'score',
@@ -48,17 +51,17 @@ module.exports = {
     router: {
       mediaCodecs: [
         {
-          kind: "audio",
-          mimeType: "audio/opus",
+          kind: 'audio' as MediaKind,
+          mimeType: 'audio/opus',
           clockRate: 48000,
           channels: 2,
         },
         {
-          kind: "video",
-          mimeType: "video/VP8",
+          kind: 'video',
+          mimeType: 'video/VP8',
           clockRate: 90000,
           parameters: {
-            "x-google-start-bitrate": 1000,
+            'x-google-start-bitrate': 1000,
           },
         },
       ],
@@ -67,7 +70,7 @@ module.exports = {
     webRtcTransport: {
       listenIps: [
         {
-          ip: "0.0.0.0",
+          ip: '0.0.0.0',
           announcedIp: getLocalIp(), // replace by public IP address
         },
       ],
@@ -75,4 +78,4 @@ module.exports = {
       initialAvailableOutgoingBitrate: 1000000,
     },
   },
-};
+}

@@ -11,7 +11,8 @@
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "@controllers/*": ["./controllers/*"]
+      "@controllers/*": ["./controllers/*"],
+      "@helpers/*": ["./helpers/*"]
     },
     "typeRoots": ["customTypes", "node_modules/@types"]
   },
