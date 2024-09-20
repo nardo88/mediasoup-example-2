@@ -23,8 +23,8 @@ const getLocalIp = () => {
 export const config = {
   listenIp: '0.0.0.0',
   listenPort: 3000,
-  sslCrt: '../ssl/cert.pem',
-  sslKey: '../ssl/key.pem',
+  sslCrt: './sert/сert.pem',
+  sslKey: './sert/key.pem',
 
   mediasoup: {
     // Worker settings

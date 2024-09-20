@@ -1,39 +1,37 @@
-import { FC, useRef, useState } from 'react'
+import { FC, useEffect, useRef, useState } from 'react'
 import cls from './Example.module.scss'
 import { io } from 'socket.io-client'
-import mediasoupClient from 'mediasoup-client'
+import { RoomClient } from './RoomClient'
 
 export const Example: FC = () => {
-  const nameInput = {} as any
-  const roomidInput = {} as any
   const audioSelect = {} as any
   const videoSelect = {} as any
 
   // ==================================================
-  const rc = useRef<null | any>(null)
   const [isEnumerateDevices, setIsEnumerateDevices] = useState(false)
+  const [user, setUser] = useState('user_' + Math.round(Math.random() * 1000))
+  const [roomId, setRoomId] = useState('123')
 
-  // if (location.href.substr(0, 5) !== 'https')
-  //   location.href = 'https' + location.href.substr(4, location.href.length - 4)
+  // refs
+  const rc = useRef<null | any>(null)
+  const localMediaEl = useRef<HTMLDivElement>(null)
+  const remoteAudioEl = useRef<HTMLDivElement>(null)
+  const remoteVideoEl = useRef<HTMLDivElement>(null)
 
-  const socket = io('http://localhost:5000')
+  const socket = useRef(io('https://192.168.31.93:5000'))
 
-  // let producer = null
-
-  // nameInput.value = 'user_' + Math.round(Math.random() * 1000)
-
-  // // @ts-ignore
-  // socket.request = function request(type: any, data = {}) {
-  //   return new Promise((resolve, reject) => {
-  //     socket.emit(type, data, (data: any) => {
-  //       if (data.error) {
-  //         reject(data.error)
-  //       } else {
-  //         resolve(data)
-  //       }
-  //     })
-  //   })
-  // }
+  // @ts-ignore
+  socket.current.request = function request(type: any, data = {}) {
+    return new Promise((resolve, reject) => {
+      socket.current.emit(type, data, (data: any) => {
+        if (data.error) {
+          reject(data.error)
+        } else {
+          resolve(data)
+        }
+      })
+    })
+  }
 
   function joinRoom(name: any, room_id: any) {
     if (rc.current && rc.current.isOpen()) {
@@ -41,82 +39,16 @@ export const Example: FC = () => {
     } else {
       initEnumerateDevices()
       rc.current = new RoomClient({
-        localMediaEl,
-        mediasoupClient,
+        localMediaEl: localMediaEl,
         name,
         remoteAudioEl,
         remoteVideoEl,
         room_id,
-        socket,
-        successCallback,
+        socket: socket.current,
+        successCallback: () => console.log('room created'),
       })
-
-      addListeners()
     }
   }
-
-  // // function roomOpen() {
-  // //   login.className = 'hidden'
-  // //   reveal(startAudioButton)
-  // //   hide(stopAudioButton)
-  // //   reveal(startVideoButton)
-  // //   hide(stopVideoButton)
-  // //   reveal(startScreenButton)
-  // //   hide(stopScreenButton)
-  // //   reveal(exitButton)
-  // //   reveal(copyButton)
-  // //   reveal(devicesButton)
-  // //   control.className = ''
-  // //   reveal(videoMedia)
-  // // }
-
-  // function hide(elem: any) {
-  //   elem.className = 'hidden'
-  // }
-
-  // function reveal(elem: any) {
-  //   elem.className = ''
-  // }
-
-  function addListeners() {
-    rc.current?.on(RoomClient.EVENTS.startScreen, () => {
-      hide(startScreenButton)
-      reveal(stopScreenButton)
-    })
-
-    rc.current?.on(RoomClient.EVENTS.stopScreen, () => {
-      hide(stopScreenButton)
-      reveal(startScreenButton)
-    })
-
-    rc.on(RoomClient.EVENTS.stopAudio, () => {
-      hide(stopAudioButton)
-      reveal(startAudioButton)
-    })
-    rc.on(RoomClient.EVENTS.startAudio, () => {
-      hide(startAudioButton)
-      reveal(stopAudioButton)
-    })
-
-    rc.on(RoomClient.EVENTS.startVideo, () => {
-      hide(startVideoButton)
-      reveal(stopVideoButton)
-    })
-    rc.on(RoomClient.EVENTS.stopVideo, () => {
-      hide(stopVideoButton)
-      reveal(startVideoButton)
-    })
-    rc.on(RoomClient.EVENTS.exitRoom, () => {
-      hide(control)
-      hide(devicesList)
-      hide(videoMedia)
-      hide(copyButton)
-      hide(devicesButton)
-      reveal(login)
-    })
-  }
-
-  // let isEnumerateDevices = false
 
   function initEnumerateDevices() {
     // Many browsers, without the consent of getUserMedia, cannot enumerate the devices.
@@ -155,11 +87,14 @@ export const Example: FC = () => {
         let option = document.createElement('option')
         option.value = device.deviceId
         option.innerText = device.label
+        console.log(el)
         el.appendChild(option)
         setIsEnumerateDevices(true)
       })
     )
   }
+
+  useEffect(() => {}, [])
 
   return (
     <div className={cls.Example}>
@@ -167,13 +102,11 @@ export const Example: FC = () => {
         <div id="login">
           <br />
           <i className="fas fa-server"> Room: </i>
-          <input id="roomidInput" value="123" type="text" />
+          <input value={roomId} onChange={(e) => setRoomId(e.target.value)} />
           {/* <!--<button id="createRoom" onClick="createRoom(roomid.value)" label="createRoom">Create Room</button>--> */}
           <i className="fas fa-user"> User: </i>
-          <input id="nameInput" value="user" type="text" />
-          <button
-            id="joinButton"
-            onClick={() => joinRoom(nameInput.value, roomidInput.value)}>
+          <input value={user} onChange={(e) => setUser(e.target.value)} />
+          <button id="joinButton" onClick={() => joinRoom(user, roomId)}>
             <i className="fas fa-sign-in-alt"></i> Join
           </button>
         </div>
@@ -270,7 +203,7 @@ export const Example: FC = () => {
           <h4>
             <i className="fab fa-youtube"></i> Local media
           </h4>
-          <div id="localMedia" className="containers">
+          <div ref={localMediaEl} className="containers">
             {/* <!--<video id="localVideo" autoPlay inline className="vid"></video>--> */}
             {/* <!--<video id="localScreen" autoplay inline className="vid"></video>--> */}
           </div>
@@ -278,8 +211,8 @@ export const Example: FC = () => {
           <h4>
             <i className="fab fa-youtube"></i> Remote media
           </h4>
-          <div id="remoteVideos" className="containers"></div>
-          <div id="remoteAudios"></div>
+          <div ref={remoteVideoEl} className="containers"></div>
+          <div ref={remoteAudioEl}></div>
         </div>
       </div>
     </div>

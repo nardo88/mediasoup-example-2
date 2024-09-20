@@ -1,3 +1,5 @@
+import { Device } from 'mediasoup-client'
+
 const mediaType = {
   audio: 'audioType',
   video: 'videoType',
@@ -15,21 +17,20 @@ const _EVENTS = {
 }
 
 interface IOptions {
-  localMediaEl: any
-  remoteVideoEl: any
-  remoteAudioEl: any
-  mediasoupClient: any
+  localMediaEl: React.RefObject<HTMLDivElement>
+  remoteVideoEl: React.RefObject<HTMLDivElement>
+  remoteAudioEl: React.RefObject<HTMLDivElement>
   socket: any
   room_id: any
   name: any
-  successCallback: any
+  successCallback: () => void
 }
 
-class RoomClient {
+export class RoomClient {
   name: any
-  localMediaEl: any
-  remoteVideoEl: any
-  remoteAudioEl: any
+  localMediaEl: React.RefObject<HTMLDivElement>
+  remoteVideoEl: React.RefObject<HTMLDivElement>
+  remoteAudioEl: React.RefObject<HTMLDivElement>
   mediasoupClient: any
   producerTransport: any
   consumerTransport: any
@@ -47,7 +48,6 @@ class RoomClient {
   constructor(opt: IOptions) {
     const {
       localMediaEl,
-      mediasoupClient,
       name,
       remoteAudioEl,
       remoteVideoEl,
@@ -59,7 +59,6 @@ class RoomClient {
     this.localMediaEl = localMediaEl
     this.remoteVideoEl = remoteVideoEl
     this.remoteAudioEl = remoteAudioEl
-    this.mediasoupClient = mediasoupClient
 
     this.socket = socket
     this.producerTransport = null
@@ -72,8 +71,6 @@ class RoomClient {
 
     this.consumers = new Map()
     this.producers = new Map()
-
-    console.log('Mediasoup client', mediasoupClient)
 
     /**
      * map that contains a mediatype as key and producer_id as value
@@ -144,7 +141,11 @@ class RoomClient {
   async loadDevice(routerRtpCapabilities: any) {
     let device
     try {
-      device = new this.mediasoupClient.Device()
+      device = new Device()
+      await device.load({
+        routerRtpCapabilities,
+      })
+      return device
     } catch (error: any) {
       if (error.name === 'UnsupportedError') {
         console.error('Browser not supported')
@@ -152,10 +153,6 @@ class RoomClient {
       }
       console.error(error)
     }
-    await device.load({
-      routerRtpCapabilities,
-    })
-    return device
   }
 
   async initTransports(device: any) {
@@ -424,7 +421,7 @@ class RoomClient {
         elem.playsinline = false
         elem.autoplay = true
         elem.className = 'vid'
-        this.localMediaEl.appendChild(elem)
+        this.localMediaEl.current!.appendChild(elem)
         this.handleFS(elem.id)
       }
 
@@ -491,7 +488,7 @@ class RoomClient {
           elem.autoplay = true
           elem.className = 'vid'
           //@ts-ignore
-          this.remoteVideoEl.appendChild(elem)
+          this.remoteVideoEl.current.appendChild(elem)
           //@ts-ignore
           this.handleFS(elem.id)
         } else {

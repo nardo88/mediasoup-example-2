@@ -2,7 +2,7 @@ import 'module-alias/register'
 import express from 'express'
 import dotenv from 'dotenv'
 import cors from 'cors'
-import { createServer } from 'http'
+import https from 'https'
 import { Server, Socket } from 'socket.io'
 import { createRoutes } from './routes'
 import { config } from '@helpers/config'
@@ -10,6 +10,7 @@ import * as mediasoup from 'mediasoup'
 import { Worker, WorkerLogLevel, WorkerLogTag } from 'mediasoup/node/lib/types'
 import { Room } from '@helpers/room'
 import { Peer } from '@helpers/peer'
+import fs from 'fs'
 
 interface CustomSoket extends Socket {
   room_id: string
@@ -19,6 +20,13 @@ dotenv.config()
 
 const app = express()
 const PORT = process.env.PORT || 5000
+
+const options = {
+  key: fs.readFileSync('./sert/key.pem', 'utf-8'),
+  cert: fs.readFileSync('./sert/cert.pem', 'utf-8'),
+}
+
+const httpsServer = https.createServer(options, app)
 
 app.use(
   cors({
@@ -84,9 +92,7 @@ async function createWorkers() {
   }
 }
 
-const server = createServer(app)
-
-const io = new Server(server, {
+const io = new Server(httpsServer, {
   cors: {
     origin: '*',
   },
@@ -262,7 +268,7 @@ app.use('/api/v1/', routes.defaultRout)
 
 async function start() {
   try {
-    server.listen(PORT, () => {
+    httpsServer.listen(PORT, () => {
       console.log(`Server started in ${PORT} port`)
     })
   } catch (error) {
