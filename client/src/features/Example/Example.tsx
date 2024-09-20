@@ -1,19 +1,22 @@
-import { FC } from 'react'
+import { FC, useRef, useState } from 'react'
 import cls from './Example.module.scss'
 import { io } from 'socket.io-client'
+import mediasoupClient from 'mediasoup-client'
 
 export const Example: FC = () => {
   const nameInput = {} as any
   const roomidInput = {} as any
-  const RoomClient = {} as any
   const audioSelect = {} as any
   const videoSelect = {} as any
-  const rc = {} as any
+
+  // ==================================================
+  const rc = useRef<null | any>(null)
+  const [isEnumerateDevices, setIsEnumerateDevices] = useState(false)
 
   // if (location.href.substr(0, 5) !== 'https')
   //   location.href = 'https' + location.href.substr(4, location.href.length - 4)
 
-  // const socket = io('http://localhost:5000')e
+  const socket = io('http://localhost:5000')
 
   // let producer = null
 
@@ -32,25 +35,24 @@ export const Example: FC = () => {
   //   })
   // }
 
-  // let rc: any = null
-
   function joinRoom(name: any, room_id: any) {
-    // if (rc && rc.isOpen()) {
-    //   console.log('Already connected to a room')
-    // } else {
-    //   initEnumerateDevices()
-    // rc = new RoomClient(
-    //   localMediaEl,
-    //   remoteVideos,
-    //   remoteAudios,
-    //   window.mediasoupClient,
-    //   socket,
-    //   room_id,
-    //   name,
-    //   roomOpen
-    // )
-    // addListeners()
-    // }
+    if (rc.current && rc.current.isOpen()) {
+      console.log('Already connected to a room')
+    } else {
+      initEnumerateDevices()
+      rc.current = new RoomClient({
+        localMediaEl,
+        mediasoupClient,
+        name,
+        remoteAudioEl,
+        remoteVideoEl,
+        room_id,
+        socket,
+        successCallback,
+      })
+
+      addListeners()
+    }
   }
 
   // // function roomOpen() {
@@ -76,88 +78,88 @@ export const Example: FC = () => {
   //   elem.className = ''
   // }
 
-  // // function addListeners() {
-  // //   rc.on(RoomClient.EVENTS.startScreen, () => {
-  // //     hide(startScreenButton)
-  // //     reveal(stopScreenButton)
-  // //   })
+  function addListeners() {
+    rc.current?.on(RoomClient.EVENTS.startScreen, () => {
+      hide(startScreenButton)
+      reveal(stopScreenButton)
+    })
 
-  // //   rc.on(RoomClient.EVENTS.stopScreen, () => {
-  // //     hide(stopScreenButton)
-  // //     reveal(startScreenButton)
-  // //   })
+    rc.current?.on(RoomClient.EVENTS.stopScreen, () => {
+      hide(stopScreenButton)
+      reveal(startScreenButton)
+    })
 
-  // //   rc.on(RoomClient.EVENTS.stopAudio, () => {
-  // //     hide(stopAudioButton)
-  // //     reveal(startAudioButton)
-  // //   })
-  // //   rc.on(RoomClient.EVENTS.startAudio, () => {
-  // //     hide(startAudioButton)
-  // //     reveal(stopAudioButton)
-  // //   })
+    rc.on(RoomClient.EVENTS.stopAudio, () => {
+      hide(stopAudioButton)
+      reveal(startAudioButton)
+    })
+    rc.on(RoomClient.EVENTS.startAudio, () => {
+      hide(startAudioButton)
+      reveal(stopAudioButton)
+    })
 
-  // //   rc.on(RoomClient.EVENTS.startVideo, () => {
-  // //     hide(startVideoButton)
-  // //     reveal(stopVideoButton)
-  // //   })
-  // //   rc.on(RoomClient.EVENTS.stopVideo, () => {
-  // //     hide(stopVideoButton)
-  // //     reveal(startVideoButton)
-  // //   })
-  // //   rc.on(RoomClient.EVENTS.exitRoom, () => {
-  // //     hide(control)
-  // //     hide(devicesList)
-  // //     hide(videoMedia)
-  // //     hide(copyButton)
-  // //     hide(devicesButton)
-  // //     reveal(login)
-  // //   })
-  // // }
+    rc.on(RoomClient.EVENTS.startVideo, () => {
+      hide(startVideoButton)
+      reveal(stopVideoButton)
+    })
+    rc.on(RoomClient.EVENTS.stopVideo, () => {
+      hide(stopVideoButton)
+      reveal(startVideoButton)
+    })
+    rc.on(RoomClient.EVENTS.exitRoom, () => {
+      hide(control)
+      hide(devicesList)
+      hide(videoMedia)
+      hide(copyButton)
+      hide(devicesButton)
+      reveal(login)
+    })
+  }
 
   // let isEnumerateDevices = false
 
-  // function initEnumerateDevices() {
-  //   // Many browsers, without the consent of getUserMedia, cannot enumerate the devices.
-  //   if (isEnumerateDevices) return
+  function initEnumerateDevices() {
+    // Many browsers, without the consent of getUserMedia, cannot enumerate the devices.
+    if (isEnumerateDevices) return
 
-  //   const constraints = {
-  //     audio: true,
-  //     video: true,
-  //   }
+    const constraints = {
+      audio: true,
+      video: true,
+    }
 
-  //   navigator.mediaDevices
-  //     .getUserMedia(constraints)
-  //     .then((stream) => {
-  //       enumerateDevices()
-  //       stream.getTracks().forEach(function (track) {
-  //         track.stop()
-  //       })
-  //     })
-  //     .catch((err) => {
-  //       console.error('Access denied for audio/video: ', err)
-  //     })
-  // }
+    navigator.mediaDevices
+      .getUserMedia(constraints)
+      .then((stream) => {
+        enumerateDevices()
+        stream.getTracks().forEach(function (track) {
+          track.stop()
+        })
+      })
+      .catch((err) => {
+        console.error('Access denied for audio/video: ', err)
+      })
+  }
 
-  // function enumerateDevices() {
-  //   // Load mediaDevice options
-  //   navigator.mediaDevices.enumerateDevices().then((devices) =>
-  //     devices.forEach((device) => {
-  //       let el = null
-  //       if ('audioinput' === device.kind) {
-  //         el = audioSelect
-  //       } else if ('videoinput' === device.kind) {
-  //         el = videoSelect
-  //       }
-  //       if (!el) return
+  function enumerateDevices() {
+    // Load mediaDevice options
+    navigator.mediaDevices.enumerateDevices().then((devices) =>
+      devices.forEach((device) => {
+        let el = null
+        if ('audioinput' === device.kind) {
+          el = audioSelect
+        } else if ('videoinput' === device.kind) {
+          el = videoSelect
+        }
+        if (!el) return
 
-  //       let option = document.createElement('option')
-  //       option.value = device.deviceId
-  //       option.innerText = device.label
-  //       el.appendChild(option)
-  //       isEnumerateDevices = true
-  //     })
-  //   )
-  // }
+        let option = document.createElement('option')
+        option.value = device.deviceId
+        option.innerText = device.label
+        el.appendChild(option)
+        setIsEnumerateDevices(true)
+      })
+    )
+  }
 
   return (
     <div className={cls.Example}>
@@ -180,59 +182,68 @@ export const Example: FC = () => {
       <div className="container">
         <div id="control" className="hidden">
           <br />
-          <button id="exitButton" className="hidden" onClick={() => rc.exit()}>
+          <button
+            id="exitButton"
+            className="hidden"
+            onClick={() => rc.current?.exit()}>
             <i className="fas fa-arrow-left"></i> Exit
           </button>
           <button
             id="copyButton"
             className="hidden"
-            onClick={() => rc.copyURL()}>
+            onClick={() => rc.current?.copyURL()}>
             <i className="far fa-copy"></i> copy URL
           </button>
           <button
             id="devicesButton"
             className="hidden"
-            onClick={() => rc.showDevices()}>
+            onClick={() => rc.current?.showDevices()}>
             <i className="fas fa-cogs"></i> Devices
           </button>
           <button
             id="startAudioButton"
             className="hidden"
             onClick={() =>
-              rc.produce(RoomClient.mediaType.audio, audioSelect.value)
+              rc.current?.produce(RoomClient.mediaType.audio, audioSelect.value)
             }>
             <i className="fas fa-volume-up"></i> Open audio
           </button>
           <button
             id="stopAudioButton"
             className="hidden"
-            onClick={() => rc.closeProducer(RoomClient.mediaType.audio)}>
+            onClick={() =>
+              rc.current?.closeProducer(RoomClient.mediaType.audio)
+            }>
             <i className="fas fa-volume-up"></i> Close audio
           </button>
           <button
             id="startVideoButton"
             className="hidden"
             onClick={() =>
-              rc.produce(RoomClient.mediaType.video, videoSelect.value)
+              rc.current?.produce(RoomClient.mediaType.video, videoSelect.value)
             }>
             <i className="fas fa-camera"></i> Open video
           </button>
           <button
             id="stopVideoButton"
             className="hidden"
-            onClick={() => rc.closeProducer(RoomClient.mediaType.video)}>
+            onClick={() =>
+              rc.current?.closeProducer(RoomClient.mediaType.video)
+            }>
             <i className="fas fa-camera"></i> Close video
           </button>
           <button
             id="startScreenButton"
             className="hidden"
-            onClick={() => rc.produce(RoomClient.mediaType.screen)}>
+            onClick={() => rc.current?.produce(RoomClient.mediaType.screen)}>
             <i className="fas fa-desktop"></i> Open screen
           </button>
           <button
             id="stopScreenButton"
             className="hidden"
-            onClick={() => rc.closeProducer(RoomClient.mediaType.screen)}>
+            onClick={() =>
+              rc.current?.closeProducer(RoomClient.mediaType.screen)
+            }>
             <i className="fas fa-desktop"></i> Close screen
           </button>
           <br />
