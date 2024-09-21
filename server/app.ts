@@ -3,7 +3,7 @@ import express from 'express'
 import dotenv from 'dotenv'
 import cors from 'cors'
 import https from 'https'
-import { Server, Socket } from 'socket.io'
+import { Server } from 'socket.io'
 import { createRoutes } from './routes'
 import { config } from '@helpers/config'
 import * as mediasoup from 'mediasoup'
@@ -11,10 +11,6 @@ import { Worker, WorkerLogLevel, WorkerLogTag } from 'mediasoup/node/lib/types'
 import { Room } from '@helpers/room'
 import { Peer } from '@helpers/peer'
 import fs from 'fs'
-
-interface CustomSoket extends Socket {
-  room_id: string
-}
 
 dotenv.config()
 
