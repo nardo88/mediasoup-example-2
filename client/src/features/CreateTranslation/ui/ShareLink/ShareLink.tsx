@@ -11,10 +11,34 @@ interface ShareLinkProps {
 export const ShareLink: FC<ShareLinkProps> = (props) => {
   const { className } = props
   const [url, setUrl] = useState('')
+  const [isCoppied, setIsCoppied] = useState(false)
+
+  const clickHandler = () => {
+    navigator.clipboard.writeText(url).then(() => {
+      setIsCoppied(true)
+    })
+  }
 
   useEffect(() => {
     setUrl(`${location.origin}${location.pathname}`)
   }, [])
+
+  useEffect(() => {
+    let need = true
+
+    if (isCoppied) {
+      setTimeout(() => {
+        if (need) {
+          setIsCoppied(false)
+        }
+      }, 3000)
+    }
+
+    return () => {
+      need = false
+    }
+  }, [isCoppied])
+
   return (
     <div className={classNames(cls.ShareLink, {}, [className])}>
       <Text variant={TextVariants.LIGHT}>
@@ -23,6 +47,15 @@ export const ShareLink: FC<ShareLinkProps> = (props) => {
       <div className={cls.linkWrapper}>
         <Lock />
         <Text>{url}</Text>
+        <span>|</span>
+        <div className={cls.copy} onClick={clickHandler}>
+          <Text
+            className={classNames(cls.copyText, {
+              [cls.isCoppied]: isCoppied,
+            })}>
+            Копировать
+          </Text>
+        </div>
       </div>
     </div>
   )

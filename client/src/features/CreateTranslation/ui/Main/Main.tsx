@@ -9,7 +9,7 @@ interface MainProps {
 }
 
 export const Main: FC<MainProps> = () => {
-  const [current, setCurrent] = useState<CurrentAreaType>('link')
+  const [current, _setCurrent] = useState<CurrentAreaType>('link')
   return (
     <div className={cls.Main}>
       <ContentSection current={current} />

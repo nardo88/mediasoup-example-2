@@ -25,4 +25,26 @@
     line-height: 20px;
     color: var(--base-100);
   }
+
+  span {
+    margin: 0 12px;
+  }
+}
+
+.copy {
+  cursor: pointer;
+}
+
+.copyText {
+  &:hover {
+    color: #e59803;
+  }
+}
+
+.isCoppied {
+  color: var(--additional-success) !important;
+
+  &:hover {
+    color: var(--additional-success);
+  }
 }
