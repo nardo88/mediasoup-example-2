@@ -5,3 +5,9 @@
   gap: 6px;
   justify-content: center;
 }
+
+.deviceEabled {
+  button {
+    background: var(--additional-success);
+  }
+}

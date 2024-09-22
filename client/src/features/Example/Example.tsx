@@ -4,10 +4,6 @@ import { io } from 'socket.io-client'
 import { RoomClient } from './RoomClient'
 
 export const Example: FC = () => {
-  const audioSelect = {} as any
-  const videoSelect = {} as any
-
-  // ==================================================
   const [isEnumerateDevices, setIsEnumerateDevices] = useState(false)
   const [user, setUser] = useState('user_' + Math.round(Math.random() * 1000))
   const [roomId, setRoomId] = useState('123')
@@ -17,11 +13,14 @@ export const Example: FC = () => {
   const localMediaEl = useRef<HTMLDivElement>(null)
   const remoteAudioEl = useRef<HTMLDivElement>(null)
   const remoteVideoEl = useRef<HTMLDivElement>(null)
+  const videoSelect = useRef<HTMLSelectElement>(null)
+  const audioSelect = useRef<HTMLSelectElement>(null)
 
-  const socket = useRef(io('https://192.168.31.93:5000'))
+  const socket = useRef(io('https://192.168.31.171:5000'))
 
   // @ts-ignore
   socket.current.request = function request(type: any, data = {}) {
+    console.log('type: ', type, data)
     return new Promise((resolve, reject) => {
       socket.current.emit(type, data, (data: any) => {
         if (data.error) {
@@ -78,9 +77,9 @@ export const Example: FC = () => {
       devices.forEach((device) => {
         let el = null
         if ('audioinput' === device.kind) {
-          el = audioSelect
+          el = audioSelect.current
         } else if ('videoinput' === device.kind) {
-          el = videoSelect
+          el = videoSelect.current
         }
         if (!el) return
 
@@ -137,7 +136,10 @@ export const Example: FC = () => {
             id="startAudioButton"
             className="hidden"
             onClick={() =>
-              rc.current?.produce(RoomClient.mediaType.audio, audioSelect.value)
+              rc.current?.produce(
+                RoomClient.mediaType.audio,
+                audioSelect.current?.value
+              )
             }>
             <i className="fas fa-volume-up"></i> Open audio
           </button>
@@ -153,7 +155,10 @@ export const Example: FC = () => {
             id="startVideoButton"
             className="hidden"
             onClick={() =>
-              rc.current?.produce(RoomClient.mediaType.video, videoSelect.value)
+              rc.current?.produce(
+                RoomClient.mediaType.video,
+                videoSelect.current?.value
+              )
             }>
             <i className="fas fa-camera"></i> Open video
           </button>
@@ -185,12 +190,14 @@ export const Example: FC = () => {
             <i className="fas fa-microphone"></i> Audio:
             <select
               id="audioSelect"
+              ref={audioSelect}
               className="form-select"
               style={{ width: 'auto' }}></select>
             <br />
             <i className="fas fa-video"></i> Video:
             <select
               id="videoSelect"
+              ref={videoSelect}
               className="form-select"
               style={{ width: 'auto' }}></select>
           </div>
