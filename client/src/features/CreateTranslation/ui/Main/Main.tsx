@@ -15,20 +15,29 @@ export const Main: FC<MainProps> = () => {
   const {
     cameraEnabled,
     micEnabled,
+    isOnline,
     start,
     changeCameraStatus,
     changeMicStatus,
+    startVideo,
+    stream,
   } = useMediasoup(params.roomId as string)
-  const [current, _setCurrent] = useState<CurrentAreaType>('link')
+  const [current, setCurrent] = useState<CurrentAreaType>('link')
   return (
     <div className={cls.Main}>
-      <ContentSection current={current} />
-      <ControlSection
+      <ContentSection
+        current={current}
+        isOnline={isOnline}
         start={start}
+        stream={stream}
+      />
+      <ControlSection
         cameraEnabled={cameraEnabled}
         micEnabled={micEnabled}
         changeCameraStatus={changeCameraStatus}
         changeMicStatus={changeMicStatus}
+        startVideo={startVideo}
+        setCurrent={setCurrent}
       />
     </div>
   )

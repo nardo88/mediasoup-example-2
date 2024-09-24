@@ -1,1 +1,1 @@
-export type CurrentAreaType = 'link'
+export type CurrentAreaType = 'link' | 'video'

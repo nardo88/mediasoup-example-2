@@ -5,15 +5,26 @@ import { UserIcon } from '@shared/ui/icons/UserIcon'
 import { Text } from '@shared/ui/Text/Text'
 import { ShareLink } from '../ShareLink/ShareLink'
 import { CurrentAreaType } from '../../types'
+import { Video } from '../Video/Video'
 
 interface ContentSectionProps {
   className?: string
   cameraEnabled?: boolean
+  isOnline: boolean
   current: CurrentAreaType
+  start: () => void
+  stream: null | MediaStream
 }
 
 export const ContentSection: FC<ContentSectionProps> = (props) => {
-  const { className, cameraEnabled = false, current } = props
+  const {
+    className,
+    cameraEnabled = false,
+    current,
+    isOnline,
+    start,
+    stream,
+  } = props
 
   return (
     <div
@@ -31,7 +42,8 @@ export const ContentSection: FC<ContentSectionProps> = (props) => {
         )}
       </div>
       <div className={cls.additional}>
-        {current === 'link' && <ShareLink />}
+        {current === 'link' && <ShareLink isOnline={isOnline} start={start} />}
+        {current === 'video' && <Video stream={stream} />}
       </div>
     </div>
   )

@@ -1,4 +1,4 @@
-import { FC } from 'react'
+import { Dispatch, FC, SetStateAction } from 'react'
 import cls from './ControlSection.module.scss'
 import { ControlBtn } from '../ControlBtn/ControlBtn'
 import { VideoCam } from '@shared/ui/icons/VideoCam'
@@ -9,14 +9,16 @@ import { Chat } from '@shared/ui/icons/Chat'
 import { Group } from '@shared/ui/icons/Group'
 import { OpenDoor } from '@shared/ui/icons/OpenDoor'
 import { classNames } from '@shared/helpers/classNames'
+import { CurrentAreaType } from '@features/CreateTranslation/types'
 
 interface ControlSectionProps {
   className?: string
   cameraEnabled: boolean
   micEnabled: boolean
-  start: () => void
   changeCameraStatus: () => void
   changeMicStatus: () => void
+  startVideo: () => Promise<void>
+  setCurrent: Dispatch<SetStateAction<CurrentAreaType>>
 }
 
 export const ControlSection: FC<ControlSectionProps> = (props) => {
@@ -24,14 +26,20 @@ export const ControlSection: FC<ControlSectionProps> = (props) => {
     cameraEnabled,
     micEnabled,
     changeMicStatus,
-    start,
     changeCameraStatus,
+    startVideo,
+    setCurrent,
   } = props
 
   return (
     <div className={cls.ControlSection}>
       <ControlBtn
-        onClick={changeCameraStatus}
+        onClick={() =>
+          startVideo().then(() => {
+            changeCameraStatus()
+            setCurrent('video')
+          })
+        }
         className={classNames('', { [cls.deviceEabled]: cameraEnabled })}
         Icon={VideoCam}
         label="Видео"
@@ -46,7 +54,12 @@ export const ControlSection: FC<ControlSectionProps> = (props) => {
       <ControlBtn onClick={() => null} Icon={Record} label="Запись" />
       <ControlBtn onClick={() => null} Icon={Chat} label="Чат" />
       <ControlBtn onClick={() => null} Icon={Group} label="Участники" />
-      <ControlBtn isCapOff onClick={start} Icon={OpenDoor} label="Завершить" />
+      <ControlBtn
+        isCapOff
+        onClick={() => null}
+        Icon={OpenDoor}
+        label="Завершить"
+      />
     </div>
   )
 }

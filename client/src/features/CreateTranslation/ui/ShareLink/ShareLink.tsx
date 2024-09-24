@@ -6,10 +6,12 @@ import { Lock } from '@shared/ui/icons/Lock'
 
 interface ShareLinkProps {
   className?: string
+  isOnline: boolean
+  start: () => void
 }
 
 export const ShareLink: FC<ShareLinkProps> = (props) => {
-  const { className } = props
+  const { className, isOnline, start } = props
   const [url, setUrl] = useState('')
   const [isCoppied, setIsCoppied] = useState(false)
 
@@ -57,6 +59,12 @@ export const ShareLink: FC<ShareLinkProps> = (props) => {
           </Text>
         </div>
       </div>
+      {!isOnline && (
+        <Text className={cls.description}>
+          Комната закрыта. Чтобы войти, гостям нужно постучаться.{' '}
+          <span onClick={start}>Открыть комнату</span>
+        </Text>
+      )}
     </div>
   )
 }

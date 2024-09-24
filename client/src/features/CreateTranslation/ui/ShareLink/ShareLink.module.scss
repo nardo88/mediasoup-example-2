@@ -48,3 +48,13 @@
     color: var(--additional-success);
   }
 }
+
+.description {
+  max-width: 360px;
+  text-align: center;
+
+  span {
+    color: #e59803;
+    cursor: pointer;
+  }
+}
